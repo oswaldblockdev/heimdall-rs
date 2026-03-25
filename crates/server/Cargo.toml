@@ -1,0 +1,24 @@
+[package]
+name = "heimdall-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "heimdall-server"
+path = "src/main.rs"
+
+[dependencies]
+heimdall-disassembler = { workspace = true }
+heimdall-cfg = { workspace = true }
+heimdall-decoder = { workspace = true }
+heimdall-decompiler = { workspace = true }
+
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+eyre = { workspace = true }

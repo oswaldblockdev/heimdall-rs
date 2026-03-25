@@ -13,6 +13,7 @@ members = [
     "crates/cli",
     "crates/cfg",
     "crates/vm",
+    "crates/server",
 ]
 
 # Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
@@ -176,3 +177,5 @@ once_cell = "1.19"
 criterion = { version = "0.5.1", features = ["async_futures", "async_tokio"] }
 memory-stats = "1.0.0"
 serde_yaml = "0.9.31"
+axum = { version = "0.7", features = ["json"] }
+tower-http = { version = "0.5", features = ["cors", "fs"] }

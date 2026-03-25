@@ -1,4 +1,4 @@
-modules = ["rust-stable", "bash", "rust-nightly"]
+modules = ["rust-stable", "bash", "rust-nightly", "nodejs-20"]
 [agent]
 expertMode = true
 
@@ -17,15 +17,37 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = """
-cargo build -p heimdall-cli 2>&1 && echo '
-=== Heimdall CLI Ready ===' && target/debug/heimdall --help"""
+args = "cd frontend && npm run dev"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "target/debug/heimdall-server"
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
+
+[[ports]]
+localPort = 5000
+externalPort = 80

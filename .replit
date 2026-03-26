@@ -47,6 +47,7 @@ args = "target/debug/heimdall-server"
 [[ports]]
 localPort = 3001
 externalPort = 3001
+exposeLocalhost = true
 
 [[ports]]
 localPort = 5000

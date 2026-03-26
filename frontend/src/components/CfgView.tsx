@@ -15,37 +15,60 @@ export default function CfgView({ dot }: { dot: string }) {
         const viz = await instance();
         const rendered = viz.renderSVGElement(dot);
         if (!cancelled) {
-          // Style the SVG
+          // Size and background
           rendered.setAttribute("width", "100%");
           rendered.setAttribute("height", "100%");
           rendered.style.background = "transparent";
-          // Color the nodes and edges
+
+          // Graphviz emits a white-filled <polygon> as a direct child of the
+          // root .graph <g> — this is the canvas background. Target only that.
+          rendered.querySelectorAll("g.graph > polygon").forEach((el) => {
+            (el as SVGElement).style.fill = "#0d1117";
+            (el as SVGElement).style.stroke = "#21262d";
+          });
+
+          // Node shapes (boxes, ellipses, etc.)
           const nodes = rendered.querySelectorAll(".node polygon, .node ellipse, .node rect");
           nodes.forEach((el) => {
             (el as SVGElement).style.fill = "#161b22";
             (el as SVGElement).style.stroke = "#30363d";
           });
+
+          // Node labels
           const nodeTexts = rendered.querySelectorAll(".node text");
           nodeTexts.forEach((el) => {
             (el as SVGElement).style.fill = "#e6edf3";
             (el as SVGElement).style.fontFamily = "JetBrains Mono, monospace";
             (el as SVGElement).style.fontSize = "10px";
           });
+
+          // Edge lines — keep red/green branch colours from graphviz, blue for unconditional
           const edges = rendered.querySelectorAll(".edge path");
           edges.forEach((el) => {
-            if (!(el as SVGPathElement).getAttribute("stroke")?.includes("red") &&
-                !(el as SVGPathElement).getAttribute("stroke")?.includes("green")) {
+            const stroke = (el as SVGPathElement).getAttribute("stroke") ?? "";
+            if (!stroke.includes("red") && !stroke.includes("green")) {
               (el as SVGElement).style.stroke = "#58a6ff";
             }
           });
+
+          // Arrowheads
           const arrowheads = rendered.querySelectorAll(".edge polygon");
           arrowheads.forEach((el) => {
-            if (!(el as SVGPolygonElement).getAttribute("stroke")?.includes("red") &&
-                !(el as SVGPolygonElement).getAttribute("stroke")?.includes("green")) {
-              (el as SVGElement).style.fill = "#58a6ff";
+            const stroke = (el as SVGPolygonElement).getAttribute("stroke") ?? "";
+            const fill  = (el as SVGPolygonElement).getAttribute("fill")   ?? "";
+            if (!stroke.includes("red") && !stroke.includes("green") &&
+                !fill.includes("red")   && !fill.includes("green")) {
+              (el as SVGElement).style.fill   = "#58a6ff";
               (el as SVGElement).style.stroke = "#58a6ff";
             }
           });
+
+          // Cluster / subgraph borders
+          rendered.querySelectorAll(".cluster polygon, .cluster rect").forEach((el) => {
+            (el as SVGElement).style.fill   = "#161b22";
+            (el as SVGElement).style.stroke = "#30363d";
+          });
+
           setSvg(rendered.outerHTML);
         }
       } catch (e) {

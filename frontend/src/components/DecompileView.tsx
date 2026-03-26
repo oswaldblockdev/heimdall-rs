@@ -13,40 +13,41 @@ function highlightSolidity(code: string): string {
     "new", "delete", "true", "false", "this", "msg", "block", "tx",
   ];
 
+  // 1. Escape HTML special characters first
   let highlighted = code
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // Comments
+  // 2. Comments — match // to end of line
   highlighted = highlighted.replace(
     /(\/\/[^\n]*)/g,
-    '<span style="color:#8b949e;font-style:italic">$1</span>'
+    '<span class="hl-comment">$1</span>'
   );
 
-  // Strings
+  // 3. Strings
   highlighted = highlighted.replace(
     /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,
-    '<span style="color:#a5d6ff">$1</span>'
+    '<span class="hl-string">$1</span>'
   );
 
-  // Numbers (hex and decimal)
+  // 4. Numbers (hex and decimal) — only outside of already-tagged spans
   highlighted = highlighted.replace(
     /\b(0x[0-9a-fA-F]+|\d+)\b/g,
-    '<span style="color:#ffa657">$1</span>'
+    '<span class="hl-number">$1</span>'
   );
 
-  // Keywords
+  // 5. Keywords — only whole words
   const kwRegex = new RegExp(`\\b(${keywords.join("|")})\\b`, "g");
   highlighted = highlighted.replace(
     kwRegex,
-    '<span style="color:#d2a8ff">$1</span>'
+    '<span class="hl-keyword">$1</span>'
   );
 
-  // Function names (word followed by open paren)
+  // 6. Function call names (word followed by open paren)
   highlighted = highlighted.replace(
     /\b([a-zA-Z_]\w*)\s*\(/g,
-    '<span style="color:#58a6ff">$1</span>('
+    '<span class="hl-function">$1</span>('
   );
 
   return highlighted;
@@ -145,10 +146,7 @@ export default function DecompileView({
                   {functions.length}
                 </span>
               </div>
-              <div
-                className="overflow-auto"
-                style={{ maxHeight: "300px" }}
-              >
+              <div className="overflow-auto" style={{ maxHeight: "300px" }}>
                 <table className="w-full text-xs font-mono">
                   <thead className="bg-[#0d1117]">
                     <tr>
@@ -170,9 +168,7 @@ export default function DecompileView({
                             .join(", ") || "—"}
                         </td>
                         <td className="px-4 py-2 text-[#a5d6ff]">
-                          {fn.outputs
-                            ?.map((out) => out.type)
-                            .join(", ") || "—"}
+                          {fn.outputs?.map((out) => out.type).join(", ") || "—"}
                         </td>
                         <td className="px-4 py-2">
                           <span
@@ -207,7 +203,7 @@ export default function DecompileView({
               <div className="p-3 space-y-1">
                 {events.map((ev, i) => (
                   <div key={i} className="font-mono text-xs text-[#e6edf3]">
-                    <span className="text-[#ffa657]">event</span>{" "}
+                    <span className="hl-keyword">event</span>{" "}
                     <span className="text-[#e3b341]">{ev.name}</span>
                     <span className="text-[#8b949e]">
                       ({ev.inputs?.map((inp) => `${inp.type}${inp.name ? " " + inp.name : ""}`).join(", ")})

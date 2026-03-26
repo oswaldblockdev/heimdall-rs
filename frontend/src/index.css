@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
 * {
   box-sizing: border-box;
@@ -32,3 +32,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #484f58;
 }
+
+/* Syntax highlighting classes used in DecompileView */
+.hl-comment  { color: #8b949e; font-style: italic; }
+.hl-string   { color: #a5d6ff; }
+.hl-number   { color: #ffa657; }
+.hl-keyword  { color: #d2a8ff; }
+.hl-function { color: #58a6ff; }

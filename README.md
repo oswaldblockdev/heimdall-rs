@@ -5,20 +5,54 @@
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/jon-becker/heimdall-rs/tests.yml?label=Unit%20Tests)
 ![GitHub release (with filter)](https://img.shields.io/github/v/release/jon-becker/heimdall-rs?color=success&label=Latest%20Version)
 
-
 ## Overview
 
-Heimdall is an advanced EVM smart contract toolkit specializing in bytecode analysis and extracting information from unverified contracts. Heimdall is written in Rust and is designed to be fast, modular, and more accurate than other existing tools.
+Heimdall is an advanced EVM smart contract toolkit specializing in bytecode analysis and extracting information from unverified contracts. Written in Rust, it is designed to be fast, modular, and more accurate than other existing tools.
 
-Currently, Heimdall supports the following operations:
- * EVM Bytecode Disassembly
- * EVM Smart-Contract Control Flow Graph Generation
- * EVM Smart-Contract Decompilation
- * Smart-Contract Storage Dumping
- * Raw Transaction Calldata Decoding
- * Raw Transaction Trace Decoding
+In addition to the CLI, this fork ships an **interactive web frontend** that lets you explore all four core analysis tools directly in your browser — no command line required.
 
-## Installation & Usage
+---
+
+## Web Frontend
+
+![Heimdall Web UI](./screenshots/heimdall-disassemble.jpg)
+
+The frontend is a dark-themed React + Vite application backed by an Axum REST API that calls the Heimdall library crates directly. All four tools are available through a unified sidebar interface.
+
+### Tools
+
+#### Disassemble
+Convert raw EVM bytecode (or a contract address + RPC URL) into a colour-coded opcode table. Opcodes are grouped by category — arithmetic, memory, stack, control flow, environment — each with its own colour so patterns jump out immediately.
+
+#### Decompile
+Reconstruct high-level Solidity/Yul source code from bytecode. The result is displayed in a syntax-highlighted editor (single-pass tokeniser; comments, strings, keywords, and function calls each in a distinct colour) alongside a recoverable ABI tab that lists every function signature and event.
+
+#### Control Flow Graph
+Render the contract's execution flow as an interactive SVG graph powered by Graphviz (via viz.js). The graph is fully dark-themed — background, node boxes, and labels all match the UI — while conditional branch edges retain their semantic colours (green = true branch, red = false branch, blue = unconditional). A zoom slider and a DOT-source view are also available.
+
+#### Decode Calldata
+Paste raw calldata or a transaction hash (with an RPC URL) to decode the function selector and each argument into a structured tree. Nested tuples and arrays are expanded recursively, with types and values clearly labelled.
+
+### Running locally
+
+```bash
+# 1. Build the API server (requires Rust stable ≥ 1.88)
+cargo build -p heimdall-server
+
+# 2. Start the API (port 3001)
+./target/debug/heimdall-server
+
+# 3. In a separate terminal, start the frontend (port 5000)
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5000` in your browser. The frontend proxies all `/api/*` requests to the API server automatically.
+
+---
+
+## CLI Installation & Usage
 
 Ensure that Rust & Cargo are installed:
 
@@ -40,9 +74,18 @@ Once you have installed `bifrost`, you can use it to install Heimdall using the 
 bifrost
 ```
 
-After compilation, the `heimdall` command will be available to use from a new terminal. For advanced options, see the [bifrost documentation](https://jbecker.dev/r/heimdall-rs/wiki/installation).
+After compilation, the `heimdall` command will be available. For advanced options, see the [bifrost documentation](https://jbecker.dev/r/heimdall-rs/wiki/installation).
 
 _Having trouble? Check out the [Troubleshooting](https://jbecker.dev/r/heimdall-rs/wiki/troubleshooting) section in the wiki._
+
+### Supported operations
+
+- EVM Bytecode Disassembly
+- EVM Smart-Contract Control Flow Graph Generation
+- EVM Smart-Contract Decompilation
+- Smart-Contract Storage Dumping
+- Raw Transaction Calldata Decoding
+- Raw Transaction Trace Decoding
 
 ## Documentation
 
@@ -68,13 +111,11 @@ If interested in the research behind Heimdall, check out some of my [publication
 
 Heimdall has been cited in the following academic papers & theses:
 
-
-
-- Aimar, D. (2023). *Extraction, indexing, and analysis of Ethereum smart contracts data* [Master’s thesis, Politecnico di Torino]. Webthesis. http://webthesis.biblio.polito.it/id/eprint/28450
+- Aimar, D. (2023). *Extraction, indexing, and analysis of Ethereum smart contracts data* [Master's thesis, Politecnico di Torino]. Webthesis. http://webthesis.biblio.polito.it/id/eprint/28450
 - Chen, Z., Beillahi, S. M., Barahimi, P., Minwalla, C., Du, H., Veneris, A., & Long, F. (2025). *Secure smart contract with control flow integrity*. arXiv. https://doi.org/10.48550/arXiv.2504.05509
-- Darwish, M. (2024). *From bytecode to safety: Decompiling smart contracts for vulnerability analysis* [Bachelor’s thesis, Linnaeus University]. DiVA Portal. https://urn.kb.se/resolve?urn=urn:nbn:se:lnu:diva-129903
-- Forissier, T. (2024). *EVeilM: EVM bytecode obfuscation* [Master’s thesis, KTH Royal Institute of Technology]. DiVA Portal. https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-359674
-- Gkioka, M. (2025). *Domain transfer via decompilation: Enhancing code LLMs’ performance for blockchain applications* [Master’s thesis, National and Kapodistrian University of Athens]. Pergamos. https://pergamos.lib.uoa.gr/uoa/dl/object/5296079
+- Darwish, M. (2024). *From bytecode to safety: Decompiling smart contracts for vulnerability analysis* [Bachelor's thesis, Linnaeus University]. DiVA Portal. https://urn.kb.se/resolve?urn=urn:nbn:se:lnu:diva-129903
+- Forissier, T. (2024). *EVeilM: EVM bytecode obfuscation* [Master's thesis, KTH Royal Institute of Technology]. DiVA Portal. https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-359674
+- Gkioka, M. (2025). *Domain transfer via decompilation: Enhancing code LLMs' performance for blockchain applications* [Master's thesis, National and Kapodistrian University of Athens]. Pergamos. https://pergamos.lib.uoa.gr/uoa/dl/object/5296079
 - Lagouvardos, S., Bollanos, Y., Debono, M., Grech, N. & Smaragdakis, Y. (2025). *Precise static identification of Ethereum storage variables*. arXiv. https://doi.org/10.48550/arXiv.2503.20690
 - Lagouvardos, S., Bollanos, Y., Grech, N., & Smaragdakis, Y. (2025). *The incredible shrinking context…in a decompiler near you*. arXiv. https://doi.org/10.48550/arXiv.2409.11157
 - Liu, Y., Li, X., & Li, Y. (2025). *DeepTx: Real-time transaction risk analysis via multi-modal features and LLM reasoning*. arXiv. https://doi.org/10.48550/arXiv.2510.18438

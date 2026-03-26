@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 function highlightSolidity(code: string): string {
-  const keywords = [
+  const keywords = new Set([
     "function", "returns", "return", "if", "else", "for", "while", "do",
     "mapping", "struct", "event", "modifier", "require", "revert", "emit",
     "uint256", "uint128", "uint64", "uint32", "uint16", "uint8", "uint",
@@ -11,46 +11,47 @@ function highlightSolidity(code: string): string {
     "memory", "storage", "calldata", "immutable", "constant",
     "contract", "interface", "library", "pragma", "import", "is",
     "new", "delete", "true", "false", "this", "msg", "block", "tx",
-  ];
+  ]);
 
-  // 1. Escape HTML special characters first
-  let highlighted = code
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  // 2. Comments — match // to end of line
-  highlighted = highlighted.replace(
-    /(\/\/[^\n]*)/g,
-    '<span class="hl-comment">$1</span>'
-  );
+  // Single-pass tokenizer: each alternative is tried in priority order.
+  // Group 1: line comment   // ...
+  // Group 2: string literal "..." or '...'
+  // Group 3: hex / decimal number
+  // Group 4: identifier immediately followed by ( — function call
+  // Group 5: plain identifier — keyword or regular word
+  const master =
+    /(\/\/[^\n]*)|(["'](?:[^"'\\]|\\.)*["'])|(0x[0-9a-fA-F]+|\b\d+\b)|([a-zA-Z_]\w*)\(|([a-zA-Z_]\w*)/g;
 
-  // 3. Strings
-  highlighted = highlighted.replace(
-    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,
-    '<span class="hl-string">$1</span>'
-  );
+  let result = "";
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
 
-  // 4. Numbers (hex and decimal) — only outside of already-tagged spans
-  highlighted = highlighted.replace(
-    /\b(0x[0-9a-fA-F]+|\d+)\b/g,
-    '<span class="hl-number">$1</span>'
-  );
+  while ((match = master.exec(code)) !== null) {
+    result += esc(code.slice(lastIndex, match.index));
+    const [, comment, str, num, fnName, word] = match;
 
-  // 5. Keywords — only whole words
-  const kwRegex = new RegExp(`\\b(${keywords.join("|")})\\b`, "g");
-  highlighted = highlighted.replace(
-    kwRegex,
-    '<span class="hl-keyword">$1</span>'
-  );
+    if (comment !== undefined) {
+      result += `<span class="hl-comment">${esc(comment)}</span>`;
+    } else if (str !== undefined) {
+      result += `<span class="hl-string">${esc(str)}</span>`;
+    } else if (num !== undefined) {
+      result += `<span class="hl-number">${esc(num)}</span>`;
+    } else if (fnName !== undefined) {
+      result += `<span class="hl-function">${esc(fnName)}</span>(`;
+    } else if (word !== undefined) {
+      result += keywords.has(word)
+        ? `<span class="hl-keyword">${esc(word)}</span>`
+        : esc(word);
+    }
 
-  // 6. Function call names (word followed by open paren)
-  highlighted = highlighted.replace(
-    /\b([a-zA-Z_]\w*)\s*\(/g,
-    '<span class="hl-function">$1</span>('
-  );
+    lastIndex = master.lastIndex;
+  }
 
-  return highlighted;
+  result += esc(code.slice(lastIndex));
+  return result;
 }
 
 interface AbiEntry {
